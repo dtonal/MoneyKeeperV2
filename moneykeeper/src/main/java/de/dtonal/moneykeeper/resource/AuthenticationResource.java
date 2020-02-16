@@ -1,5 +1,8 @@
 package de.dtonal.moneykeeper.resource;
 
+import java.io.IOException;
+
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -8,9 +11,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import de.dtonal.moneykeeper.model.UserCredential;
+import de.dtonal.moneykeeper.security.JwtService;
 
 @Path("/authentication")
 public class AuthenticationResource {
+
+	@Inject
+	private JwtService jwtService;
 
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
@@ -38,10 +45,8 @@ public class AuthenticationResource {
 		// Throw an Exception if the credentials are invalid
 	}
 
-	private String issueToken(String username) {
-		// Issue a token (can be a random String persisted to a database or a JWT token)
-		// The issued token must be associated to a user
-		// Return the issued token
-		return "token";
+	private String issueToken(String username) throws IOException {
+		return jwtService.createJws(username);
 	}
+
 }
