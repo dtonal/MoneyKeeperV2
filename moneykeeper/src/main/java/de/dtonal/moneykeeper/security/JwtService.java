@@ -10,8 +10,14 @@ import javax.crypto.SecretKey;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 
 @Singleton
 @Startup
@@ -19,10 +25,15 @@ public class JwtService {
 	private Key key = null;
 
 	public String createJws(String username) throws IOException {
+		Key key = getKey();
+		return Jwts.builder().setSubject(username).signWith(key).compact();
+	}
+
+	private Key getKey() throws IOException {
 		if (key == null) {
 			key = initKey();
 		}
-		return Jwts.builder().setSubject(username).signWith(key).compact();
+		return key;
 	}
 
 	@PostConstruct
@@ -33,6 +44,12 @@ public class JwtService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public String validateToken(String token) throws SignatureException, ExpiredJwtException, UnsupportedJwtException,
+			MalformedJwtException, IllegalArgumentException, IOException {
+		Jws<Claims> parseClaimsJws = Jwts.parserBuilder().setSigningKey(getKey()).build().parseClaimsJws(token);
+		return parseClaimsJws.getBody().getSubject();
 	}
 
 	private SecretKey initKey() throws IOException {
